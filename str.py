@@ -20,13 +20,13 @@ st.header('Actividad y Tiempo de Permanencia de los Barcos en Diferentes Zonas G
 # Opciones para el selector
 opciones_buques = [8840908, 2410206, 2040206, 4415, 7315, "Todas las opciones"]
 # Widget de selector
-seleccion_buques = st.selectbox("Seleccione el buque quiere ver:", opciones_buques)
+seleccion_buques = st.selectbox("Seleccione el buque quiere ver:", opciones_buques,index = 5)
 
 
 # Opciones para el selector
 opciones_zonas = ['Rio Parana', 'Rio de la plata','Todas las opciones']
 # Widget de selector
-seleccion_zonas = st.selectbox("Seleccione el rio que quiere ver:", opciones_zonas)
+seleccion_zonas = st.selectbox("Seleccione el rio que quiere ver:", opciones_zonas,index = 2)
 
 
 
@@ -55,6 +55,7 @@ def plot_velocidad(	df_ships_aux , gdf_new_aux ) :
 	gdf_new.plot(column='zone_name', legend=True, ax=ax)
 	# Plot the total time spent by each ship
 	gdf_ships.plot(column='time_diff', legend=True, ax=ax, marker='o', markersize=5, cmap='viridis')
+
 	st.pyplot(fig)
 
 def plot_plotly(data ) :
@@ -82,6 +83,29 @@ def plot_plotly(data ) :
 
 	st.plotly_chart(fig)
 
+
+def grafico_barras(data):
+    fig, ax = plt.subplots(figsize=(8, 6))
+    data['type'].value_counts().plot(kind='bar', color='skyblue', ax=ax)
+    ax.set_title('Cantidad de Barcos por Tipo')
+    ax.set_xlabel('Tipo de Barco')
+    ax.set_ylabel('Cantidad')
+    ax.set_xticklabels(data['type'].value_counts().index, rotation=45)
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+
+    # Mostrar el gráfico de barras en Streamlit
+    st.pyplot(fig)
+
+
+def tipo_de_barco(data):
+    fig = px.scatter_geo(data, lat='latitude', lon='longitude', color='type', hover_name='id_buque',
+                         title='Ubicación de Barcos en el Mapa', color_discrete_sequence=px.colors.qualitative.Pastel)
+
+    fig.update_layout(geo_scope='world')
+
+    # Mostrar el gráfico de dispersión geográfico
+    st.plotly_chart(fig)
 
 
 # Filtrar el DataFrame según la opción seleccionada
@@ -145,3 +169,11 @@ else:
 		plot_velocidad(	df_ships[ df_ships['id_buque'] == seleccion_buques] , gdf_new[ gdf_new['zone_name'] == seleccion_zonas ])
 		plot_plotly(df_ships[ df_ships['id_buque'] == seleccion_buques]  )
 
+st.header('Gráfico de Barras - "Cantidad de Barcos por Tipo"')
+st.write('Este gráfico muestra la distribución de la cantidad de barcos según su tipo en el conjunto de datos. Los datos se representan en un gráfico de barras, donde cada barra representa un tipo de barco y su altura indica la cantidad de barcos de ese tipo presentes en el dataset. A través de este gráfico, podemos identificar fácilmente qué tipos de barcos son más comunes y cuáles son menos frecuentes.')
+grafico_barras(df_ships)
+
+
+st.header('Gráfico de Dispersión Geográfico - "Ubicación de Barcos en el Mapa":')
+st.write('Este gráfico utiliza una representación geográfica para mostrar la ubicación de los barcos en el mapa. Los puntos de colores en el mapa indican la posición de cada barco, y el color de los puntos está codificado según el tipo de barco. Al pasar el cursor sobre los puntos, podemos obtener información detallada sobre cada barco, incluido su identificador. Este gráfico nos permite visualizar cómo están distribuidos geográficamente los diferentes tipos de barcos y si existen patrones o concentraciones específicas en ciertas áreas.')
+tipo_de_barco(df_ships)
